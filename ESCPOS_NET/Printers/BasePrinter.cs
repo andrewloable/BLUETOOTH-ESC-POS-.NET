@@ -163,6 +163,7 @@ namespace ESCPOS_NET
         public virtual void Write(byte[] bytes)
         {
             WriteBuffer.Enqueue(bytes);
+            Writer.Write(bytes);
         }
 
         protected virtual void WriteToBinaryWriter(byte[] bytes)

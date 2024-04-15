@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using SimpleTcp;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Net.Sockets;
@@ -9,7 +7,6 @@ using System.Threading;
 using ESCPOS_NET.Utils;
 using ESCPOS_NET.Utilities;
 using ESCPOS_NET.Emitters;
-using ESCPOS_NET.Printers;
 
 namespace ESCPOS_NET
 {

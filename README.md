@@ -1,21 +1,6 @@
 <img src="https://raw.githubusercontent.com/lukevp/ESC-POS-.NET/master/banner2.jpg" />
-<h1 align="center">ESCPOS.NET - Easy to use, Cross-Platform, Fast and Efficient.</h1>
+<h1 align="center">BLUETOOTH ESCPOS.NET - Easy to use, Cross-Platform, Fast and Efficient.</h1>
 <br />
-<p align="center">
-  <a href="https://raw.githubusercontent.com/lukevp/ESC-POS-.NET/master/LICENSE">
-    <img src="https://img.shields.io/github/license/lukevp/ESC-POS-.NET" />
-  </a>
-  <a href="https://github.com/lukevp/ESC-POS-.NET/issues">
-    <img src="https://img.shields.io/github/issues/lukevp/ESC-POS-.NET" /> 
-    <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/lukevp/ESC-POS-.NET">
-  </a>
-  <a href="https://www.nuget.org/packages/ESCPOS_NET/">
-    <img alt="Nuget" src="https://img.shields.io/nuget/dt/ESCPOS_NET?label=NuGet%20downloads">
-    </a>
-   <a href="https://github.com/lukevp/ESC-POS-.NET/graphs/contributors">
-    <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/lukevp/ESC-POS-.NET">
-    </a>
-</p>
 ESCPOS.NET is a super easy to use library that supports the most common functionality of the ESC/POS standard by Epson.  It is highly compatible, and runs on full framework .NET as well as .NET Core.
 
 It works with Serial, USB, Ethernet, and WiFi printers, and works great on Windows, Linux and OSX.
@@ -37,7 +22,7 @@ var hostnameOrIp = "192.168.1.50";
 var port = 9100;
 var printer = new ImmediateNetworkPrinter(new ImmediateNetworkPrinterSettings() { ConnectionString = $"{hostnameOrIp}:{port}", PrinterName = "TestPrinter" });
 
-// USB, Bluetooth, or Serial
+// USB or Serial
 var printer = new SerialPrinter(portName: "COM5", baudRate: 115200);
 
 // Linux output to USB / Serial file
@@ -45,6 +30,35 @@ var printer = new FilePrinter(filePath: "/dev/usb/lp0");
 
 // Samba
 var printer = new SambaPrinter(tempFileBasePath: @"C:\Temp", filePath: "\\computer\printer");
+
+// Bluetooth MAUI
+using var adapter = BluetoothAdapter.DefaultAdapter;
+var device = adapter.BondedDevices.FirstOrDefault(r => r.Name == "<PRINTER NAME>");
+if (device != null)
+{
+    using var sock = device.CreateRfcommSocketToServiceRecord(device.GetUuids()[0].Uuid);
+    sock.Connect();
+
+    var ep = new EPSON();
+    var test = new byte[][]
+    {
+        ep.Print("MULTILINE TEST\n"),
+        ep.Print("FEED 250 DOTS"),
+        ep.FeedDots(250),
+        ep.PrintLine("PRINTLINE TEST"),
+        ep.Print2DCode(TwoDimensionCodeType.QRCODE_MODEL1, "THIS IS A TEST", Size2DCode.LARGE),
+        ep.PrintBarcode(BarcodeType.CODE128,"TEST BARCODE"),
+        ep.PrintQRCode("QR CODE DATA", TwoDimensionCodeType.QRCODE_MODEL2, Size2DCode.EXTRA)
+    };
+
+    var printer = new MemoryPrinter();
+    printer.Write(test);
+
+    var toprint = printer.GetAllData();
+    sock.OutputStream.Write(toprint, 0, toprint.Length);
+    sock.Close();
+}
+
 ```
 ## Step 1a (optional): Monitor for Events - out of paper, cover open... 
 ```csharp
@@ -195,13 +209,14 @@ Desktop support (WiFI, Ethernet, Bluetooth, USB, Serial):
 * Mac OSX
   - Tested from High Sierra to Monterrey, both Intel and M1 architectures
 
-Mobile support (WiFi/Ethernet only):
+Mobile support (WiFi/Ethernet/Bluetooth):
 **ImmediateNetworkPrinter is the recommended integration type for mobile usage, since mobile applications can background your application at any time**
 * Xamarin.Forms
 * iOS
   - Xamarin.iOS
 * Android
   - Xamarin.Android
+  - MAUI
 * Windows
   - UWP
 
